@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlit RAG Chat - System Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .layer {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: stretch;
+        }
+        
+        .box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .box h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        
+        .box p {
+            font-size: 0.9em;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        
+        .client { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .app { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .storage { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .ml { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        
+        .arrow {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 2em;
+            font-weight: bold;
+            padding: 10px 0;
+        }
+        
+        .flow-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+        
+        .flow-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .flow-step {
+            background: white;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .flow-step strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .layer {
+                flex-direction: column;
+            }
+            
+            .box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Streamlit RAG Chat System</h1>
+        <p class="subtitle">WP4 Agricultural Knowledge Assistant</p>
+        
+        <div class="diagram">
+            <!-- Client Layer -->
+            <div class="layer">
+                <div class="box client">
+                    <h3>👤 User Interface</h3>
+                    <p>Streamlit Web Browser<br/>Chat Interface + Settings</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓</div>
+            
+            <!-- Application Layer -->
+            <div class="layer">
+                <div class="box app">
+                    <h3>🔧 Streamlit App</h3>
+                    <p><strong>Chat UI</strong><br/>Question input & response display</p>
+                </div>
+                <div class="box app">
+                    <h3>📚 Index Manager</h3>
+                    <p><strong>load_or_build_index()</strong><br/>Document processing & indexing</p>
+                </div>
+                <div class="box app">
+                    <h3>🔍 RetrievalQA Chain</h3>
+                    <p><strong>LangChain</strong><br/>Question answering pipeline</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓</div>
+            
+            <!-- Storage Layer -->
+            <div class="layer">
+                <div class="box storage">
+                    <h3>📁 Document Storage</h3>
+                    <p><strong>docs/ folder</strong><br/>PDF, TXT, DOCX files</p>
+                </div>
+                <div class="box storage">
+                    <h3>🗄️ Vector Database</h3>
+                    <p><strong>FAISS Index</strong><br/>Embedded document chunks<br/>+ metadata</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓</div>
+            
+            <!-- ML Layer -->
+            <div class="layer">
+                <div class="box ml">
+                    <h3>🧮 Embeddings Model</h3>
+                    <p><strong>HuggingFace</strong><br/>multilingual-e5-base<br/>Text → Vectors</p>
+                </div>
+                <div class="box ml">
+                    <h3>🧠 Language Model</h3>
+                    <p><strong>Ollama</strong><br/>mistral:7b<br/>Answer Generation</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Indexing Flow -->
+        <div class="flow-section">
+            <h2>📥 Document Indexing Flow</h2>
+            <div class="flow-step">
+                <strong>Step 1:</strong> Load documents from docs/ folder (PDF, TXT, DOCX)
+            </div>
+            <div class="flow-step">
+                <strong>Step 2:</strong> Split into chunks using RecursiveCharacterTextSplitter
+            </div>
+            <div class="flow-step">
+                <strong>Step 3:</strong> Remove duplicate chunks (BLAKE2b hashing)
+            </div>
+            <div class="flow-step">
+                <strong>Step 4:</strong> Generate embeddings with HuggingFace multilingual-e5-base
+            </div>
+            <div class="flow-step">
+                <strong>Step 5:</strong> Build and save FAISS index locally
+            </div>
+        </div>
+        
+        <!-- Query Flow -->
+        <div class="flow-section">
+            <h2>💬 Question Answering Flow</h2>
+            <div class="flow-step">
+                <strong>Step 1:</strong> User enters question via Streamlit chat interface
+            </div>
+            <div class="flow-step">
+                <strong>Step 2:</strong> RetrievalQA chain processes the question
+            </div>
+            <div class="flow-step">
+                <strong>Step 3:</strong> FAISS retrieves top-k most relevant chunks (similarity or MMR)
+            </div>
+            <div class="flow-step">
+                <strong>Step 4:</strong> Compose prompt with context from retrieved chunks
+            </div>
+            <div class="flow-step">
+                <strong>Step 5:</strong> Send to Ollama (mistral:7b) for answer generation
+            </div>
+            <div class="flow-step">
+                <strong>Step 6:</strong> Return answer with source citations
+            </div>
+            <div class="flow-step">
+                <strong>Step 7:</strong> Display answer in UI with expandable sources
+            </div>
+        </div>
+    </div>
+</body>
+</html>
