@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Agricultural RAG - System Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        
+        .diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .layer {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        
+        .box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 180px;
+            text-align: center;
+            flex: 1;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .box h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        
+        .box p {
+            font-size: 0.85em;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+        
+        .box code {
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .client { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .api { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .pipeline { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .storage { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .ml { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        
+        .arrow {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 2em;
+            font-weight: bold;
+            padding: 10px 0;
+        }
+        
+        .flow-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+        
+        .flow-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .flow-step {
+            background: white;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .flow-step strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .flow-step code {
+            background: #e8f4f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #2c5364;
+            font-size: 0.9em;
+        }
+        
+        .api-endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .endpoint {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f5576c;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .endpoint code {
+            display: block;
+            background: #ffe8ec;
+            padding: 8px;
+            border-radius: 4px;
+            color: #c0392b;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .endpoint p {
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .layer {
+                flex-direction: column;
+            }
+            
+            .box {
+                min-width: 100%;
+            }
+            
+            .api-endpoints {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 FastAPI Agricultural RAG System</h1>
+        <p class="subtitle">REST API Backend with ChromaDB Vector Storage + Docker Containerization</p>
+        
+        <div class="diagram">
+            <!-- Client Layer -->
+            <div class="layer">
+                <div class="box client" style="max-width: 400px;">
+                    <h3>🌐 Frontend Client</h3>
+                    <p>Static Web UI<br/><code>index.html</code><br/>JavaScript + Fetch API</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ HTTP Requests (Port 8000) ↓</div>
+            
+            <!-- Docker Container -->
+            <div style="border: 3px dashed #3498db; border-radius: 20px; padding: 30px; background: linear-gradient(135deg, rgba(52, 152, 219, 0.05) 0%, rgba(41, 128, 185, 0.1) 100%); margin: 20px 0;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #2980b9; display: inline-block; background: white; padding: 10px 30px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+                        🐳 Docker Container
+                    </h2>
+                    <p style="color: #34495e; margin-top: 10px; font-weight: bold;">
+                        Image: <code style="background: #e8f4f8; padding: 5px 10px; border-radius: 5px;">agricultural-rag-api</code>
+                    </p>
+                </div>
+            
+            <!-- API Layer -->
+            <div class="layer">
+                <div class="box api">
+                    <h3>📡 POST /ask</h3>
+                    <p>Submit questions<br/>Get answers</p>
+                </div>
+                <div class="box api">
+                    <h3>❤️ GET /health</h3>
+                    <p>System status<br/>check</p>
+                </div>
+                <div class="box api">
+                    <h3>📊 GET /stats</h3>
+                    <p>Document<br/>statistics</p>
+                </div>
+                <div class="box api">
+                    <h3>📄 GET /documents</h3>
+                    <p>List indexed<br/>documents</p>
+                </div>
+                <div class="box api">
+                    <h3>🔄 POST /reindex</h3>
+                    <p>Rebuild vector<br/>index</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ Process Requests ↓</div>
+            
+            <!-- Pipeline Layer -->
+            <div class="layer">
+                <div class="box pipeline" style="max-width: 500px;">
+                    <h3>📚 Document Pipeline</h3>
+                    <p><code>load_and_index_documents()</code><br/>
+                    PDF extraction → Chunking → Embedding → Indexing</p>
+                </div>
+                <div class="box pipeline" style="max-width: 500px;">
+                    <h3>💬 QA Pipeline</h3>
+                    <p><code>ask_question()</code><br/>
+                    Query → Retrieve → Context → Generate Answer</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ Data Operations ↓</div>
+            
+            <!-- Storage Layer -->
+            <div class="layer">
+                <div class="box storage" style="max-width: 600px;">
+                    <h3>🗄️ ChromaDB Vector Database</h3>
+                    <p><strong>Persistent Storage</strong><br/>
+                    Collection: <code>agricultural_docs</code><br/>
+                    Document embeddings + metadata + file hashes</p>
+                </div>
+            </div>
+            
+            <div class="arrow">↓ ML Processing ↓</div>
+            
+            <!-- ML Layer -->
+            <div class="layer">
+                <div class="box ml" style="max-width: 500px;">
+                    <h3>🧮 Sentence Transformer</h3>
+                    <p><strong>Embeddings Model</strong><br/>
+                    <code>all-MiniLM-L6-v2</code><br/>
+                    Text → 384-dim vectors</p>
+                </div>
+                <div class="box ml" style="max-width: 500px;">
+                    <h3>🧠 Ollama LLM</h3>
+                    <p><strong>Answer Generation</strong><br/>
+                    <code>llama3.2:3b</code><br/>
+                    Context → Natural Language Answer</p>
+                </div>
+            </div>
+            
+            <!-- Volume Mounts -->
+            <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h3 style="color: #2980b9; margin-bottom: 15px; text-align: center;">📦 Docker Volume Mounts</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <code style="color: #2c3e50; font-weight: bold;">./data → /app/data</code>
+                        <p style="color: #555; font-size: 0.9em; margin-top: 8px;">PDF documents directory</p>
+                    </div>
+                    <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <code style="color: #2c3e50; font-weight: bold;">./chroma_db → /app/chroma_db</code>
+                        <p style="color: #555; font-size: 0.9em; margin-top: 8px;">Persistent ChromaDB storage</p>
+                    </div>
+                    <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <code style="color: #2c3e50; font-weight: bold;">./static → /app/static</code>
+                        <p style="color: #555; font-size: 0.9em; margin-top: 8px;">Frontend HTML/CSS/JS files</p>
+                    </div>
+                </div>
+            </div>
+            
+            </div> <!-- End Docker Container -->
+        </div>
+        
+        <!-- API Endpoints Detail -->
+        <div class="flow-section">
+            <h2>🐳 Docker Deployment</h2>
+            <div class="flow-step">
+                <strong>Dockerfile:</strong> Multi-stage build with Python 3.11-slim base image
+            </div>
+            <div class="flow-step">
+                <strong>Requirements:</strong> FastAPI, Uvicorn, ChromaDB, Sentence-Transformers, PyPDF2, Ollama client
+            </div>
+            <div class="flow-step">
+                <strong>Port Mapping:</strong> <code>8000:8000</code> - Host port 8000 → Container port 8000
+            </div>
+            <div class="flow-step">
+                <strong>Volume Mounts:</strong> 
+                <code>./data:/app/data</code> (documents), 
+                <code>./chroma_db:/app/chroma_db</code> (vector DB), 
+                <code>./static:/app/static</code> (frontend)
+            </div>
+            <div class="flow-step">
+                <strong>Network:</strong> Connects to Ollama via <code>host.docker.internal:11434</code> or external Ollama service
+            </div>
+            <div class="flow-step">
+                <strong>Startup Command:</strong> <code>uvicorn main:app --host 0.0.0.0 --port 8000</code>
+            </div>
+            <div class="flow-step">
+                <strong>Benefits:</strong> Isolated environment, reproducible deployment, easy scaling, portable across systems
+            </div>
+        </div>
+        
+        <!-- API Endpoints Detail -->
+        <div class="flow-section">
+            <h2>🔌 REST API Endpoints</h2>
+            <div class="api-endpoints">
+                <div class="endpoint">
+                    <code>POST /ask</code>
+                    <p>Submit agricultural questions and receive AI-generated answers with source citations</p>
+                </div>
+                <div class="endpoint">
+                    <code>GET /health</code>
+                    <p>Check if system is ready and models are loaded</p>
+                </div>
+                <div class="endpoint">
+                    <code>GET /stats</code>
+                    <p>Get document count and collection statistics</p>
+                </div>
+                <div class="endpoint">
+                    <code>GET /documents</code>
+                    <p>List all indexed PDF documents with metadata</p>
+                </div>
+                <div class="endpoint">
+                    <code>POST /reindex</code>
+                    <p>Trigger full reindexing of all documents</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Startup Flow -->
+        <div class="flow-section">
+            <h2>🚀 System Startup Flow</h2>
+            <div class="flow-step">
+                <strong>Step 1:</strong> Load <code>SentenceTransformer</code> model (all-MiniLM-L6-v2)
+            </div>
+            <div class="flow-step">
+                <strong>Step 2:</strong> Initialize ChromaDB with <code>PersistentClient</code> + create/load collection
+            </div>
+            <div class="flow-step">
+                <strong>Step 3:</strong> Scan <code>data/**/*.pdf</code> directory for documents
+            </div>
+            <div class="flow-step">
+                <strong>Step 4:</strong> For each PDF: Calculate MD5 <code>file_hash</code>
+            </div>
+            <div class="flow-step">
+                <strong>Step 5:</strong> Check if already indexed (hash lookup in ChromaDB)
+            </div>
+            <div class="flow-step">
+                <strong>Step 6:</strong> If new: Extract text using <code>extract_text_from_pdf()</code>
+            </div>
+            <div class="flow-step">
+                <strong>Step 7:</strong> Chunk text with <code>chunk_text()</code> (size=1500, overlap=300)
+            </div>
+            <div class="flow-step">
+                <strong>Step 8:</strong> Batch add to ChromaDB: <code>collection.add()</code> with documents + metadata + IDs
+            </div>
+            <div class="flow-step">
+                <strong>Step 9:</strong> Set <code>system_ready = True</code> → API is live!
+            </div>
+        </div>
+        
+        <!-- Query Flow -->
+        <div class="flow-section">
+            <h2>💬 Question Answering Flow</h2>
+            <div class="flow-step">
+                <strong>Step 1:</strong> User sends <code>POST /ask</code> with question
+            </div>
+            <div class="flow-step">
+                <strong>Step 2:</strong> Validate question and check <code>system_ready</code> status
+            </div>
+            <div class="flow-step">
+                <strong>Step 3:</strong> Query ChromaDB: <code>collection.query()</code> with <code>n_results=top_k</code>
+            </div>
+            <div class="flow-step">
+                <strong>Step 4:</strong> Build concatenated context with per-chunk source tags
+            </div>
+            <div class="flow-step">
+                <strong>Step 5:</strong> Call Ollama: <code>call_ollama(question, context)</code>
+            </div>
+            <div class="flow-step">
+                <strong>Step 6:</strong> Compute confidence score from similarity distances
+            </div>
+            <div class="flow-step">
+                <strong>Step 7:</strong> Return JSON response with answer + sources + confidence
+            </div>
+        </div>
+    </div>
+</body>
+</html>
